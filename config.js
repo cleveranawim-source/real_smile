@@ -3,7 +3,7 @@ export const CONFIG = {
   weights: { eye: 40, mouth: 30, symmetry: 30 },
 
   // 정규화 곡선. gamma<1 이면 후하게, >1 이면 깐깐하게.
-  sensitivity: { eyeGamma: 0.8, mouthGamma: 0.8, symmetryStrength: 1.2, maxRollRad: 0.3 },
+  sensitivity: { eyeGamma: 0.6, mouthGamma: 0.7, symmetryStrength: 1.0, maxRollRad: 0.3 },
 
   // 입을 최소한 이만큼은 벌려야 측정으로 인정(가만히 있는 얼굴 0점 방지)
   minMouthSmileToCount: 0.15,
