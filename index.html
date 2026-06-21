@@ -58,6 +58,8 @@
   .result-row>span{font-size:1.05rem;font-weight:700}
   .result-row em{font-style:normal;font-weight:400;color:var(--sub);font-size:.9rem;margin-left:6px}
   .coach{text-align:center;font-size:1.2rem;font-weight:700;color:var(--primary-d);line-height:1.5}
+  .result-photo{width:100%;max-width:320px;align-self:center;aspect-ratio:4/3;object-fit:cover;border-radius:var(--radius);box-shadow:var(--shadow);background:#000}
+  .photo-note{text-align:center;font-size:.85rem;color:var(--sub);margin-top:-8px}
 
   .lb-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
   .lb-card h2{margin-bottom:12px}
@@ -109,6 +111,8 @@
 </section>
 
 <section class="screen" id="screen-result">
+  <img id="result-photo" class="result-photo" alt="내가 가장 환하게 웃은 순간" hidden/>
+  <p class="photo-note" id="photo-note" hidden>📸 이 사진은 저장되지 않아요 · 도전이 끝나면 사라져요</p>
   <p class="result-label">진짜 미소 점수</p>
   <div class="score-big"><span id="result-total">0</span><small>/ 100</small></div>
   <div class="grade-badge" id="result-grade">—</div>
@@ -177,6 +181,19 @@ const faceAnalyzer = {
     return { hasFace:true, categories: res.faceBlendshapes?.[0]?.categories || [], landmarks: res.faceLandmarks[0] };
   },
 };
+
+const captureCanvas = document.createElement('canvas');
+function captureFrame(video){
+  const w = video.videoWidth, h = video.videoHeight;
+  if(!w || !h) return null;
+  captureCanvas.width = w; captureCanvas.height = h;
+  const ctx = captureCanvas.getContext('2d');
+  ctx.save();
+  ctx.translate(w, 0); ctx.scale(-1, 1); // 화면처럼 좌우 반전(셀카)
+  ctx.drawImage(video, 0, 0, w, h);
+  ctx.restore();
+  return captureCanvas.toDataURL('image/jpeg', 0.9);
+}
 
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 const leaderboard = {
@@ -270,7 +287,10 @@ function measure(){
     const r = analyzeCam();
     if(r.hasFace){
       const s = computeScores(r.categories, r.landmarks, CONFIG);
-      if(s.counted && s.total > state.peak.total) state.peak = s;
+      if(s.counted && s.total > state.peak.total){
+        s.photo = captureFrame(ui.el('cam'));
+        state.peak = s;
+      }
     }
     ui.el('live-score').textContent = Math.max(0, state.peak.total);
     fill.style.width = Math.min(100, (elapsed / CONFIG.measureDurationMs) * 100) + '%';
@@ -297,6 +317,9 @@ function showResult(){
   ui.el('bar-sym').style.width = s.symmetry + '%';
   ui.el('result-grade').textContent = gradeFor(s.total, CONFIG.grades);
   ui.el('result-coach').textContent = got ? coachMessage(s) : '얼굴이나 미소가 잘 안 잡혔어요. 마스크를 내리고 밝은 곳에서 다시 도전!';
+  const img = ui.el('result-photo'), note = ui.el('photo-note');
+  if(got && state.peak.photo){ img.src = state.peak.photo; img.hidden = false; note.hidden = false; }
+  else { img.hidden = true; note.hidden = true; img.removeAttribute('src'); }
   ui.show('screen-result');
 }
 
@@ -312,6 +335,7 @@ ui.el('btn-register').addEventListener('click', () => {
   const score = (state.peak && state.peak.total >= 0 && state.peak.counted) ? state.peak.total : 0;
   const entry = leaderboard.add(state.nickname, score);
   camera.stop();
+  ui.el('result-photo').removeAttribute('src');
   state.mode = 'idle';
   leaderboard.render(ui.el('full-leaderboard'), entry.ts);
   ui.show('screen-leaderboard');
