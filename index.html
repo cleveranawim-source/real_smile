@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>😊 뒤센 미소 대회 — 명지중학교</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#f4fbf8;--card:#fff;--primary:#1d9e75;--primary-d:#0f6e56;--accent:#3fe5a0;
+    --text:#1b2a24;--sub:#6b8079;--warn:#ba7517;--danger:#c0392b;--border:#dceae3;
+    --radius:18px;--shadow:0 8px 28px rgba(0,0,0,.08);
+  }
+  [hidden]{display:none!important}
+  html,body{height:100%}
+  body{font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100%;display:flex;flex-direction:column}
+  .screen{display:none;flex:1;max-width:680px;width:100%;margin:0 auto;padding:28px 24px 40px}
+  .screen.active{display:flex;flex-direction:column;gap:20px}
+
+  h1{font-size:2.4rem;font-weight:800;color:var(--primary-d);line-height:1.2}
+  h2{font-size:1.5rem;font-weight:700}
+  p.lead{font-size:1.1rem;color:var(--sub);line-height:1.6}
+
+  .big-btn{font-size:1.4rem;padding:20px 28px;border:none;border-radius:var(--radius);background:var(--primary);color:#fff;font-weight:800;cursor:pointer;box-shadow:var(--shadow);transition:transform .08s}
+  .big-btn:active{transform:scale(.98)}
+  .big-btn:disabled{background:#aebfb8;cursor:not-allowed;box-shadow:none}
+  .ghost-btn{font-size:1rem;padding:14px;border:none;background:none;color:var(--sub);cursor:pointer;text-decoration:underline}
+  .ghost-btn.danger{color:var(--danger)}
+
+  .home-hero{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px;text-align:center}
+  .home-hero p{margin-top:10px}
+  input#input-nickname{font-size:1.5rem;padding:18px 20px;border:2px solid var(--border);border-radius:var(--radius);width:100%;text-align:center;outline:none}
+  input#input-nickname:focus{border-color:var(--primary)}
+
+  .cam-wrap{position:relative;width:100%;aspect-ratio:4/3;background:#0c1512;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+  .cam-wrap video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+  .face-guide{position:absolute;inset:0;margin:auto;width:54%;height:74%;border:3px dashed rgba(255,255,255,.75);border-radius:50%;pointer-events:none}
+  .cam-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .cam-overlay.top{align-items:flex-start;justify-content:flex-start;padding:16px}
+  .countdown-num{font-size:9rem;font-weight:900;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.45)}
+  .live-score-badge{background:rgba(0,0,0,.55);color:#fff;border-radius:16px;padding:10px 18px;font-weight:800}
+  .live-score-badge span{font-size:2.4rem}
+  .live-score-badge small{font-size:1rem;margin-left:4px;opacity:.85}
+  .hint{font-size:1.15rem;text-align:center;color:var(--sub);min-height:1.4em}
+  .measure-bar{height:16px}
+
+  .bar{height:16px;background:var(--border);border-radius:9px;overflow:hidden}
+  .bar>span{display:block;height:100%;background:var(--primary);width:0;transition:width .12s ease-out}
+  .bar>span.warn{background:var(--warn)}
+
+  .result-label{text-align:center;font-size:1.1rem;color:var(--sub)}
+  .score-big{text-align:center;line-height:1}
+  .score-big span{font-size:5.5rem;font-weight:900;color:var(--primary)}
+  .score-big small{font-size:1.6rem;color:var(--sub);margin-left:6px}
+  .grade-badge{align-self:center;background:var(--accent);color:var(--primary-d);font-weight:800;font-size:1.3rem;padding:10px 24px;border-radius:999px}
+  .result-bars{display:flex;flex-direction:column;gap:14px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
+  .result-row{display:flex;flex-direction:column;gap:7px}
+  .result-row>span{font-size:1.05rem;font-weight:700}
+  .result-row em{font-style:normal;font-weight:400;color:var(--sub);font-size:.9rem;margin-left:6px}
+  .coach{text-align:center;font-size:1.2rem;font-weight:700;color:var(--primary-d);line-height:1.5}
+
+  .lb-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
+  .lb-card h2{margin-bottom:12px}
+  .leaderboard{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .leaderboard li{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--bg);font-size:1.1rem}
+  .leaderboard.big li{font-size:1.35rem;padding:16px}
+  .leaderboard li b{min-width:1.6em;text-align:center;color:var(--primary)}
+  .leaderboard li span{margin-left:auto;font-weight:800;color:var(--primary-d)}
+  .leaderboard li.me{background:var(--accent);outline:2px solid var(--primary)}
+  .leaderboard li.empty{justify-content:center;color:var(--sub)}
+  .privacy{text-align:center;color:var(--sub);font-size:.92rem}
+</style>
+</head>
+<body>
+
+<section class="screen active" id="screen-home">
+  <div class="home-hero">
+    <h1>😊 뒤센 미소 대회</h1>
+    <p class="lead">눈까지 진짜로 웃어야 100점!<br/>카메라 앞에서 가장 환한 미소에 도전해요.</p>
+  </div>
+  <button class="big-btn" id="btn-start">도전 시작</button>
+  <div class="lb-card">
+    <h2>🏆 오늘의 순위</h2>
+    <ol class="leaderboard" id="home-leaderboard"></ol>
+  </div>
+  <p class="privacy">🔒 카메라 영상은 기기 안에서만 분석돼요 · 업로드 없음</p>
+</section>
+
+<section class="screen" id="screen-nickname">
+  <h2>별명을 입력해요</h2>
+  <p class="lead">순위판에 표시될 이름이에요. (12자까지)</p>
+  <input id="input-nickname" type="text" maxlength="12" placeholder="예: 미소요정" autocomplete="off"/>
+  <button class="big-btn" id="btn-nickname-next">다음 →</button>
+  <button class="ghost-btn" id="btn-nick-back">처음으로</button>
+</section>
+
+<section class="screen" id="screen-camera">
+  <div class="cam-wrap">
+    <video id="cam" autoplay playsinline muted></video>
+    <div class="face-guide"></div>
+    <div class="cam-overlay" id="overlay-countdown" hidden><span class="countdown-num" id="countdown-num">3</span></div>
+    <div class="cam-overlay top" id="overlay-measure" hidden>
+      <div class="live-score-badge"><span id="live-score">0</span><small>점</small></div>
+    </div>
+  </div>
+  <p class="hint" id="align-hint">가이드 안에 얼굴을 맞춰주세요</p>
+  <div class="bar measure-bar" id="measure-progress" hidden><span></span></div>
+  <button class="big-btn" id="btn-measure-start" disabled>시작</button>
+</section>
+
+<section class="screen" id="screen-result">
+  <p class="result-label">진짜 미소 점수</p>
+  <div class="score-big"><span id="result-total">0</span><small>/ 100</small></div>
+  <div class="grade-badge" id="result-grade">—</div>
+  <div class="result-bars">
+    <div class="result-row"><span>눈웃음 <em>눈둘레근 · 진짜의 핵심</em></span><div class="bar"><span id="bar-eye"></span></div></div>
+    <div class="result-row"><span>입꼬리 <em>큰광대근</em></span><div class="bar"><span id="bar-mouth"></span></div></div>
+    <div class="result-row"><span>대칭 <em>좌우 균형</em></span><div class="bar"><span id="bar-sym" class="warn"></span></div></div>
+  </div>
+  <p class="coach" id="result-coach"></p>
+  <button class="big-btn" id="btn-register">🏆 순위에 등록</button>
+  <button class="ghost-btn" id="btn-retry">다시 도전</button>
+</section>
+
+<section class="screen" id="screen-leaderboard">
+  <h2>🏆 순위판</h2>
+  <ol class="leaderboard big" id="full-leaderboard"></ol>
+  <button class="big-btn" id="btn-home">처음으로</button>
+  <button class="ghost-btn danger" id="btn-reset">오늘 순위 초기화</button>
+</section>
+
+<script type="module">
+import { CONFIG } from './config.js';
+import { computeScores, gradeFor } from './scorer.js';
+
+// MediaPipe는 카메라 진입 시점에 동적 import (CDN 불가/오프라인이어도 나머지 UI는 살아있도록)
+const MEDIAPIPE_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
+const MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
+
+const ui = {
+  el(id){ return document.getElementById(id); },
+  show(id){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    this.el(id).classList.add('active');
+  },
+};
+
+const camera = {
+  stream: null,
+  async start(videoEl){
+    try{
+      this.stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user', width:640, height:480 }, audio:false });
+      videoEl.srcObject = this.stream;
+      await videoEl.play();
+      return true;
+    }catch(e){ console.error('camera error', e); return false; }
+  },
+  stop(){ this.stream?.getTracks().forEach(t => t.stop()); this.stream = null; },
+};
+
+const faceAnalyzer = {
+  landmarker: null,
+  async init(){
+    const { FaceLandmarker, FilesetResolver } = await import(MEDIAPIPE_URL);
+    const fileset = await FilesetResolver.forVisionTasks(MEDIAPIPE_URL + "/wasm");
+    const opts = (delegate) => ({
+      baseOptions:{ modelAssetPath: MODEL_URL, delegate },
+      outputFaceBlendshapes:true, runningMode:'VIDEO', numFaces:1,
+    });
+    try{ this.landmarker = await FaceLandmarker.createFromOptions(fileset, opts('GPU')); }
+    catch(e){ console.warn('GPU init failed, falling back to CPU', e); this.landmarker = await FaceLandmarker.createFromOptions(fileset, opts('CPU')); }
+  },
+  analyze(videoEl, tsMs){
+    const res = this.landmarker.detectForVideo(videoEl, tsMs);
+    const hasFace = res.faceLandmarks && res.faceLandmarks.length > 0;
+    if(!hasFace) return { hasFace:false };
+    return { hasFace:true, categories: res.faceBlendshapes?.[0]?.categories || [], landmarks: res.faceLandmarks[0] };
+  },
+};
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+const leaderboard = {
+  list(){ try{ return JSON.parse(localStorage.getItem(CONFIG.leaderboardKey)) || []; }catch{ return []; } },
+  add(nickname, score){
+    const entry = { nickname, score, ts: Date.now() };
+    const arr = this.list(); arr.push(entry);
+    arr.sort((a,b) => b.score - a.score);
+    localStorage.setItem(CONFIG.leaderboardKey, JSON.stringify(arr));
+    return entry;
+  },
+  reset(){ localStorage.removeItem(CONFIG.leaderboardKey); },
+  render(containerEl, highlightTs){
+    const arr = this.list().slice(0, CONFIG.leaderboardSize);
+    containerEl.innerHTML = arr.length
+      ? arr.map((r,i) => `<li class="${r.ts===highlightTs?'me':''}"><b>${i+1}</b> ${escapeHtml(r.nickname)} <span>${r.score}점</span></li>`).join('')
+      : '<li class="empty">아직 기록이 없어요</li>';
+  },
+};
+
+const state = { nickname:'', peak:null, mode:'idle' };
+
+function setOverlay(mode){
+  ui.el('overlay-countdown').hidden = mode !== 'countdown';
+  ui.el('overlay-measure').hidden = mode !== 'measure';
+  ui.el('measure-progress').hidden = mode !== 'measure';
+  ui.el('btn-measure-start').style.visibility = (mode === 'align') ? 'visible' : 'hidden';
+}
+
+function analyzeCam(){
+  const v = ui.el('cam');
+  if(!faceAnalyzer.landmarker || !v || v.readyState < 2 || !v.videoWidth) return { hasFace:false };
+  try{ return faceAnalyzer.analyze(v, performance.now()); }
+  catch(e){ console.error('analyze error', e); return { hasFace:false }; }
+}
+
+async function goToCamera(){
+  ui.show('screen-camera');
+  setOverlay('align');
+  ui.el('btn-measure-start').disabled = true;
+  ui.el('align-hint').textContent = '카메라를 켜는 중…';
+  const ok = await camera.start(ui.el('cam'));
+  if(!ok){ ui.el('align-hint').textContent = '카메라를 사용할 수 없어요. 권한을 허용하고 새로고침해 주세요.'; return; }
+  if(!faceAnalyzer.landmarker){
+    ui.el('align-hint').textContent = '얼굴 인식 준비 중…';
+    try{ await faceAnalyzer.init(); }
+    catch(e){ console.error(e); ui.el('align-hint').textContent = '얼굴 인식 모델을 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.'; return; }
+  }
+  state.mode = 'align';
+  alignLoop();
+}
+
+function resumeAlign(){
+  ui.show('screen-camera');
+  setOverlay('align');
+  ui.el('btn-measure-start').disabled = true;
+  state.mode = 'align';
+  alignLoop();
+}
+
+function alignLoop(){
+  if(state.mode !== 'align') return;
+  const r = analyzeCam();
+  const ok = r.hasFace;
+  ui.el('btn-measure-start').disabled = !ok;
+  ui.el('align-hint').textContent = ok ? '좋아요! 준비되면 시작을 눌러요 😊' : '가이드 안에 얼굴을 맞춰주세요';
+  requestAnimationFrame(alignLoop);
+}
+
+function startChallenge(){
+  state.mode = 'countdown';
+  setOverlay('countdown');
+  let n = CONFIG.countdownSec;
+  ui.el('countdown-num').textContent = n;
+  const iv = setInterval(() => {
+    n -= 1;
+    if(n <= 0){ clearInterval(iv); measure(); }
+    else ui.el('countdown-num').textContent = n;
+  }, 1000);
+}
+
+function measure(){
+  state.mode = 'measure';
+  setOverlay('measure');
+  const fill = ui.el('measure-progress').firstElementChild;
+  const start = performance.now();
+  state.peak = { total:-1, eye:0, mouth:0, symmetry:0, counted:false };
+  const loop = () => {
+    const now = performance.now();
+    const elapsed = now - start;
+    const r = analyzeCam();
+    if(r.hasFace){
+      const s = computeScores(r.categories, r.landmarks, CONFIG);
+      if(s.counted && s.total > state.peak.total) state.peak = s;
+    }
+    ui.el('live-score').textContent = Math.max(0, state.peak.total);
+    fill.style.width = Math.min(100, (elapsed / CONFIG.measureDurationMs) * 100) + '%';
+    if(elapsed < CONFIG.measureDurationMs && state.mode === 'measure') requestAnimationFrame(loop);
+    else showResult();
+  };
+  requestAnimationFrame(loop);
+}
+
+function coachMessage(s){
+  if(s.eye < 50) return '입은 좋아요! 이번엔 눈가에 힘을 줘서 눈까지 웃어봐요.';
+  if(s.symmetry < 50) return '양쪽이 고르게 웃으면 점수가 더 올라가요.';
+  if(s.total >= 90) return '눈까지 환하게 웃는 진짜 미소예요! 👏';
+  return '좋아요! 조금만 더 활짝 웃어볼까요?';
+}
+
+function showResult(){
+  state.mode = 'done';
+  const got = state.peak && state.peak.total >= 0 && state.peak.counted;
+  const s = got ? state.peak : { total:0, eye:0, mouth:0, symmetry:0 };
+  ui.el('result-total').textContent = s.total;
+  ui.el('bar-eye').style.width = s.eye + '%';
+  ui.el('bar-mouth').style.width = s.mouth + '%';
+  ui.el('bar-sym').style.width = s.symmetry + '%';
+  ui.el('result-grade').textContent = gradeFor(s.total, CONFIG.grades);
+  ui.el('result-coach').textContent = got ? coachMessage(s) : '얼굴이나 미소가 잘 안 잡혔어요. 마스크를 내리고 밝은 곳에서 다시 도전!';
+  ui.show('screen-result');
+}
+
+ui.el('btn-start').addEventListener('click', () => ui.show('screen-nickname'));
+ui.el('btn-nick-back').addEventListener('click', () => ui.show('screen-home'));
+ui.el('btn-nickname-next').addEventListener('click', () => {
+  state.nickname = (ui.el('input-nickname').value || '').trim() || `도전자${leaderboard.list().length + 1}`;
+  goToCamera();
+});
+ui.el('btn-measure-start').addEventListener('click', startChallenge);
+ui.el('btn-retry').addEventListener('click', resumeAlign);
+ui.el('btn-register').addEventListener('click', () => {
+  const score = (state.peak && state.peak.total >= 0 && state.peak.counted) ? state.peak.total : 0;
+  const entry = leaderboard.add(state.nickname, score);
+  camera.stop();
+  state.mode = 'idle';
+  leaderboard.render(ui.el('full-leaderboard'), entry.ts);
+  ui.show('screen-leaderboard');
+});
+ui.el('btn-home').addEventListener('click', () => { ui.show('screen-home'); leaderboard.render(ui.el('home-leaderboard')); });
+ui.el('btn-reset').addEventListener('click', () => {
+  if(confirm('오늘 순위를 모두 지울까요?')){ leaderboard.reset(); leaderboard.render(ui.el('full-leaderboard')); }
+});
+
+if(!navigator.mediaDevices?.getUserMedia){
+  const b = ui.el('btn-start'); b.disabled = true; b.textContent = '이 브라우저는 카메라를 지원하지 않아요';
+}
+leaderboard.render(ui.el('home-leaderboard'));
+window.__leaderboard = leaderboard;
+</script>
+</body>
+</html>
