@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>교사용 사용 안내 — 뒤센 미소 대회</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#f4fbf8;--card:#fff;--primary:#1d9e75;--primary-d:#0f6e56;--accent:#3fe5a0;
+    --text:#1b2a24;--sub:#5b6f68;--warn:#ba7517;--border:#dceae3;
+    --radius:16px;--shadow:0 6px 24px rgba(0,0,0,.07);
+  }
+  body{font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+  .wrap{max-width:720px;margin:0 auto;padding:32px 22px 56px}
+  header{text-align:center;margin-bottom:28px}
+  header h1{font-size:2rem;color:var(--primary-d);font-weight:800}
+  header p{color:var(--sub);margin-top:8px;font-size:1.05rem}
+  section{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 24px;margin-bottom:18px}
+  h2{font-size:1.25rem;color:var(--primary-d);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  ol,ul{padding-left:1.2em;margin-top:6px}
+  li{margin:6px 0}
+  .pill{display:inline-block;background:var(--accent);color:var(--primary-d);font-weight:700;font-size:.82rem;padding:3px 10px;border-radius:999px;margin-left:6px}
+  .privacy{background:#eef9f3;border:1.5px solid var(--accent)}
+  .privacy h2{color:var(--primary-d)}
+  .access{text-align:center}
+  .access .url{font-size:1.6rem;font-weight:800;color:var(--primary-d);letter-spacing:.5px;margin:6px 0 14px}
+  .access img{width:220px;height:220px;background:#fff;border-radius:12px;border:1px solid var(--border)}
+  .start-btn{display:inline-block;margin-top:18px;background:var(--primary);color:#fff;font-weight:800;font-size:1.2rem;text-decoration:none;padding:16px 32px;border-radius:var(--radius);box-shadow:var(--shadow)}
+  .note{color:var(--sub);font-size:.92rem;margin-top:10px}
+  footer{text-align:center;color:var(--sub);font-size:.85rem;margin-top:24px;line-height:1.6}
+  footer a{color:var(--primary-d)}
+  @media print{body{background:#fff}section{box-shadow:none;border:1px solid var(--border)}.start-btn{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>😊 뒤센 미소 대회</h1>
+    <p>교사용 사용 안내 — 카메라로 ‘진짜 미소’를 점수화하는 SEL 수업 활동</p>
+  </header>
+
+  <section>
+    <h2>🎯 어떤 활동인가요</h2>
+    <p>‘진짜 미소(뒤센 미소)’는 입(큰광대근)뿐 아니라 <b>눈(눈둘레근)</b>까지 함께 웃는 미소예요. 이 앱은 카메라로 그 둘을 함께 보고 0~100점으로 점수화합니다. 입만 억지로 벌려선 100점이 안 나오고, <b>눈까지 진짜로 웃어야</b> 점수가 올라가요 — 그 경험 자체가 수업의 메시지가 됩니다.</p>
+  </section>
+
+  <section>
+    <h2>🧰 준비물</h2>
+    <ul>
+      <li>카메라(웹캠)가 있는 기기 — 노트북·태블릿·스마트폰 모두 OK</li>
+      <li>크롬 또는 사파리 최신 브라우저 <span class="pill">권장: 크롬</span></li>
+      <li>인터넷 연결(첫 실행 때 분석 모델을 잠깐 내려받아요)</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>▶️ 사용법</h2>
+    <ol>
+      <li>아래 주소(또는 QR)로 접속해요.</li>
+      <li>카메라 권한을 <b>허용</b>합니다.</li>
+      <li>‘도전 시작’ → 별명 입력 → 얼굴을 가이드 안에 맞춰요.</li>
+      <li>카운트다운 후 <b>5초 동안 가장 환하게</b> 웃어요.</li>
+      <li>점수·등급·내 미소 사진을 확인하고, 순위판에 등록!</li>
+    </ol>
+    <p class="note">교실에선 선생님 기기 1대를 프로젝터(TV)에 연결해 한 명씩 도전하는 ‘키오스크’ 방식으로 쓰기 좋아요. 순위판은 그 기기에 그날치가 쌓이고, ‘오늘 순위 초기화’로 비울 수 있어요.</p>
+  </section>
+
+  <section class="privacy">
+    <h2>🔒 개인정보 — 안심하세요</h2>
+    <ul>
+      <li>카메라 영상과 분석은 <b>전부 기기 안(브라우저)</b>에서만 처리돼요.</li>
+      <li>서버 <b>업로드·저장이 전혀 없습니다.</b> 결과 사진도 화면에만 잠깐 보이고 저장되지 않아요.</li>
+      <li>순위판에 남는 건 별명·점수 텍스트뿐(그 기기에만).</li>
+    </ul>
+    <p class="note">미성년자 카메라를 쓰는 활동이므로, 각 학교 방침에 따라 사용해 주세요.</p>
+  </section>
+
+  <section>
+    <h2>💚 수업에서 이렇게 써요</h2>
+    <ul>
+      <li>점수는 <b>평가·진단이 아니라 ‘즐거운 표정 놀이’</b>로 안내해 주세요. 등급 이름도 모두 긍정형이에요.</li>
+      <li>“왜 눈이 함께 웃어야 진짜일까?”로 감정 표현·진심 이야기로 자연스럽게 연결돼요.</li>
+      <li>점수가 낮아도 “눈을 더 써서 웃어보자!”는 격려로. 정죄·줄세우기는 피해주세요.</li>
+    </ul>
+  </section>
+
+  <section class="access">
+    <h2 style="justify-content:center">📱 접속하기</h2>
+    <div class="url">smile.uzu.kr</div>
+    <img src="qr-smile.svg" alt="smile.uzu.kr 접속 QR 코드"/>
+    <p class="note">QR을 수업 슬라이드·게시판에 붙이면 각자 기기에서 바로 도전할 수 있어요.</p>
+    <a class="start-btn" href="index.html">이 기기에서 바로 시작 →</a>
+  </section>
+
+  <footer>
+    무료로 자유롭게 쓰고 고쳐도 됩니다 (MIT 라이선스).<br/>
+    소스·공유: <a href="https://github.com/cleveranawim-source/real_smile">github.com/cleveranawim-source/real_smile</a>
+  </footer>
+</div>
+</body>
+</html>
