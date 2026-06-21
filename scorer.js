@@ -12,14 +12,14 @@ export function eyeScore(bs, cfg) {
   const raw = avg([
     bs.eyeSquintLeft || 0, bs.eyeSquintRight || 0,
     bs.cheekSquintLeft || 0, bs.cheekSquintRight || 0,
-  ]);
-  return clamp01(Math.pow(raw, cfg.sensitivity.eyeGamma));
+  ]) * cfg.sensitivity.eyeGain;
+  return clamp01(Math.pow(clamp01(raw), cfg.sensitivity.eyeGamma));
 }
 
 // 큰광대근: mouthSmile 평균
 export function mouthScore(bs, cfg) {
-  const raw = avg([bs.mouthSmileLeft || 0, bs.mouthSmileRight || 0]);
-  return clamp01(Math.pow(raw, cfg.sensitivity.mouthGamma));
+  const raw = avg([bs.mouthSmileLeft || 0, bs.mouthSmileRight || 0]) * cfg.sensitivity.mouthGain;
+  return clamp01(Math.pow(clamp01(raw), cfg.sensitivity.mouthGamma));
 }
 
 // 좌우 대칭 + 얼굴 수평

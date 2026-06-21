@@ -2,8 +2,8 @@ export const CONFIG = {
   // 채점 가중치 (합 100). 깐깐 모드: 눈 40 / 입 30 / 대칭 30
   weights: { eye: 40, mouth: 30, symmetry: 30 },
 
-  // 정규화 곡선. gamma<1 이면 후하게, >1 이면 깐깐하게.
-  sensitivity: { eyeGamma: 0.6, mouthGamma: 0.7, symmetryStrength: 1.0, maxRollRad: 0.3 },
+  // gain: 카메라 blendshape 원값이 낮게 잡히는 걸 보정(클수록 후함). gamma: 낮을수록 후함.
+  sensitivity: { eyeGain: 1.5, eyeGamma: 0.7, mouthGain: 1.15, mouthGamma: 0.75, symmetryStrength: 0.9, maxRollRad: 0.3 },
 
   // 입을 최소한 이만큼은 벌려야 측정으로 인정(가만히 있는 얼굴 0점 방지)
   minMouthSmileToCount: 0.15,
