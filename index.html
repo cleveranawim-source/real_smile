@@ -60,6 +60,9 @@
   .coach{text-align:center;font-size:1.2rem;font-weight:700;color:var(--primary-d);line-height:1.5}
   .result-photo{width:100%;max-width:320px;align-self:center;aspect-ratio:4/3;object-fit:cover;border-radius:var(--radius);box-shadow:var(--shadow);background:#000}
   .photo-note{text-align:center;font-size:.85rem;color:var(--sub);margin-top:-8px}
+  .save-row{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap}
+  .chk{display:flex;align-items:center;gap:8px;color:var(--sub);font-size:.95rem;cursor:pointer}
+  .chk input{width:18px;height:18px;accent-color:var(--primary);cursor:pointer}
 
   .lb-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
   .lb-card h2{margin-bottom:12px}
@@ -124,6 +127,10 @@
   </div>
   <p class="coach" id="result-coach"></p>
   <button class="big-btn" id="btn-register">🏆 순위에 등록</button>
+  <div class="save-row">
+    <label class="chk"><input type="checkbox" id="chk-include-photo"/> 내 사진도 포함</label>
+    <button class="ghost-btn" id="btn-save-image">📸 결과 이미지 저장</button>
+  </div>
   <button class="ghost-btn" id="btn-retry">다시 도전</button>
 </section>
 
@@ -321,8 +328,98 @@ function showResult(){
   const img = ui.el('result-photo'), note = ui.el('photo-note');
   if(got && state.peak.photo){ img.src = state.peak.photo; img.hidden = false; note.hidden = false; }
   else { img.hidden = true; note.hidden = true; img.removeAttribute('src'); }
+  const chk = ui.el('chk-include-photo');
+  if (got && state.peak.photo) { chk.disabled = false; chk.parentElement.style.opacity = ''; }
+  else { chk.checked = false; chk.disabled = true; chk.parentElement.style.opacity = '.45'; }
   ui.show('screen-result');
 }
+
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function loadImage(src) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; }); }
+function wrapText(ctx, text, maxW) {
+  const lines = []; let line = '';
+  for (const ch of String(text)) {
+    if (line && ctx.measureText(line + ch).width > maxW) { lines.push(line); line = ch; }
+    else line += ch;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+async function renderResultCard(s, includePhoto) {
+  const FONT = '"Apple SD Gothic Neo","Noto Sans KR",sans-serif';
+  const W = 800, M = 56, CW = W - 2 * M;
+  let photoImg = null, photoH = 0;
+  if (includePhoto && s.photo) {
+    try { photoImg = await loadImage(s.photo); photoH = Math.round(CW * 0.75); } catch { photoImg = null; }
+  }
+  const cv = document.createElement('canvas'); cv.width = W;
+  let ctx = cv.getContext('2d');
+  ctx.font = `600 26px ${FONT}`;
+  const coachLines = wrapText(ctx, coachMessage(s), CW);
+  const PAD_TOP = 78, TITLE = 58, PHOTO_GAP = photoImg ? 26 : 0, GAP = 30, SCORE = 132, GRADE = 72, BAR = 66, COACH_LH = 38, FOOTER = 60, PAD_BOT = 46;
+  const H = PAD_TOP + TITLE + PHOTO_GAP + photoH + GAP + SCORE + GRADE + 3 * BAR + coachLines.length * COACH_LH + FOOTER + PAD_BOT;
+  cv.height = H; ctx = cv.getContext('2d');
+  ctx.fillStyle = '#eef7f2'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#ffffff'; roundRectPath(ctx, 18, 18, W - 36, H - 36, 30); ctx.fill();
+  let y = PAD_TOP;
+  ctx.textAlign = 'center'; ctx.fillStyle = '#0f6e56'; ctx.font = `800 40px ${FONT}`;
+  ctx.fillText('뒤센 미소 대회', W / 2, y); y += TITLE;
+  if (photoImg) {
+    y += PHOTO_GAP;
+    const pw = CW, ph = photoH, px = M, py = y;
+    const ar = photoImg.width / photoImg.height, boxAr = pw / ph;
+    let sw, sh, sx, sy;
+    if (ar > boxAr) { sh = photoImg.height; sw = sh * boxAr; sx = (photoImg.width - sw) / 2; sy = 0; }
+    else { sw = photoImg.width; sh = sw / boxAr; sx = 0; sy = (photoImg.height - sh) / 2; }
+    ctx.save(); roundRectPath(ctx, px, py, pw, ph, 18); ctx.clip();
+    ctx.drawImage(photoImg, sx, sy, sw, sh, px, py, pw, ph); ctx.restore();
+    y += ph;
+  }
+  y += GAP;
+  ctx.font = `800 96px ${FONT}`; const numW = ctx.measureText(String(s.total)).width;
+  ctx.font = `600 34px ${FONT}`; const slashW = ctx.measureText(' /100').width;
+  const startX = (W - (numW + slashW)) / 2;
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#1d9e75'; ctx.font = `800 96px ${FONT}`; ctx.fillText(String(s.total), startX, y + 76);
+  ctx.fillStyle = '#9bb0a8'; ctx.font = `600 34px ${FONT}`; ctx.fillText(' /100', startX + numW, y + 76);
+  ctx.textAlign = 'center'; ctx.fillStyle = '#5b6f68'; ctx.font = `400 24px ${FONT}`;
+  ctx.fillText('진짜 미소 점수', W / 2, y + 112); y += SCORE;
+  const grade = gradeFor(s.total, CONFIG.grades);
+  ctx.font = `700 30px ${FONT}`; const gw = ctx.measureText(grade).width + 56;
+  ctx.fillStyle = '#3fe5a0'; roundRectPath(ctx, (W - gw) / 2, y - 4, gw, 52, 26); ctx.fill();
+  ctx.fillStyle = '#0f6e56'; ctx.textAlign = 'center'; ctx.fillText(grade, W / 2, y + 32); y += GRADE;
+  const bars = [['눈웃음', '눈둘레근', s.eye, '#1d9e75'], ['입꼬리', '큰광대근', s.mouth, '#1d9e75'], ['대칭', '좌우 균형', s.symmetry, '#ba7517']];
+  for (const [label, sub, val, color] of bars) {
+    ctx.textAlign = 'left'; ctx.fillStyle = '#1b2a24'; ctx.font = `600 27px ${FONT}`; ctx.fillText(label, M, y + 24);
+    const lw = ctx.measureText(label).width;
+    ctx.fillStyle = '#9bb0a8'; ctx.font = `400 21px ${FONT}`; ctx.fillText(sub, M + lw + 12, y + 24);
+    ctx.textAlign = 'right'; ctx.fillStyle = '#1b2a24'; ctx.font = `700 27px ${FONT}`; ctx.fillText(val + '%', W - M, y + 24);
+    const by = y + 38;
+    ctx.fillStyle = '#dceae3'; roundRectPath(ctx, M, by, CW, 16, 8); ctx.fill();
+    ctx.fillStyle = color; roundRectPath(ctx, M, by, Math.max(16, CW * val / 100), 16, 8); ctx.fill();
+    y += BAR;
+  }
+  ctx.textAlign = 'center'; ctx.fillStyle = '#0f6e56'; ctx.font = `600 26px ${FONT}`;
+  for (const ln of coachLines) { ctx.fillText(ln, W / 2, y + 26); y += COACH_LH; }
+  ctx.fillStyle = '#9bb0a8'; ctx.font = `400 22px ${FONT}`;
+  ctx.fillText(`${new Date().toLocaleDateString('ko-KR')}  ·  smile.uzu.kr`, W / 2, y + 30);
+  return cv.toDataURL('image/png');
+}
+async function saveResultCard(includePhoto) {
+  const got = state.peak && state.peak.total >= 0 && state.peak.counted;
+  const s = got ? state.peak : { total: 0, eye: 0, mouth: 0, symmetry: 0, photo: null };
+  const url = await renderResultCard(s, includePhoto && got);
+  const a = document.createElement('a');
+  a.href = url; a.download = `뒤센미소_${s.total}점.png`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+window.__renderResultCard = renderResultCard;
 
 ui.el('btn-start').addEventListener('click', () => ui.show('screen-nickname'));
 ui.el('btn-nick-back').addEventListener('click', () => ui.show('screen-home'));
@@ -332,6 +429,7 @@ ui.el('btn-nickname-next').addEventListener('click', () => {
 });
 ui.el('btn-measure-start').addEventListener('click', startChallenge);
 ui.el('btn-retry').addEventListener('click', resumeAlign);
+ui.el('btn-save-image').addEventListener('click', () => saveResultCard(ui.el('chk-include-photo').checked));
 ui.el('btn-register').addEventListener('click', () => {
   const score = (state.peak && state.peak.total >= 0 && state.peak.counted) ? state.peak.total : 0;
   const entry = leaderboard.add(state.nickname, score);
