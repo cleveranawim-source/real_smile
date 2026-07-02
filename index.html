@@ -160,6 +160,7 @@ const ui = {
 const camera = {
   stream: null,
   async start(videoEl){
+    this.stop(); // 이전 스트림이 남아있으면 정리(이중 시작 시 카메라 누수 방지)
     try{
       this.stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user', width:640, height:480 }, audio:false });
       videoEl.srcObject = this.stream;
@@ -331,6 +332,7 @@ function showResult(){
   const chk = ui.el('chk-include-photo');
   if (got && state.peak.photo) { chk.disabled = false; chk.parentElement.style.opacity = ''; }
   else { chk.checked = false; chk.disabled = true; chk.parentElement.style.opacity = '.45'; }
+  ui.el('btn-register').disabled = false; // 새 결과 → 등록 버튼 재활성화
   ui.show('screen-result');
 }
 
@@ -423,14 +425,21 @@ window.__renderResultCard = renderResultCard;
 
 ui.el('btn-start').addEventListener('click', () => ui.show('screen-nickname'));
 ui.el('btn-nick-back').addEventListener('click', () => ui.show('screen-home'));
-ui.el('btn-nickname-next').addEventListener('click', () => {
+ui.el('btn-nickname-next').addEventListener('click', async () => {
+  const btn = ui.el('btn-nickname-next');
+  btn.disabled = true; // 연타로 카메라가 두 번 켜지는 것 방지
   state.nickname = (ui.el('input-nickname').value || '').trim() || `도전자${leaderboard.list().length + 1}`;
-  goToCamera();
+  try{ await goToCamera(); } finally{ btn.disabled = false; }
+});
+ui.el('input-nickname').addEventListener('keydown', (e) => {
+  // isComposing: 한글 IME 조합 중 Enter로 잘못 넘어가는 것 방지
+  if(e.key === 'Enter' && !e.isComposing){ e.preventDefault(); ui.el('btn-nickname-next').click(); }
 });
 ui.el('btn-measure-start').addEventListener('click', startChallenge);
 ui.el('btn-retry').addEventListener('click', resumeAlign);
 ui.el('btn-save-image').addEventListener('click', () => saveResultCard(ui.el('chk-include-photo').checked));
 ui.el('btn-register').addEventListener('click', () => {
+  ui.el('btn-register').disabled = true; // 연타 중복 등록 방지 — 다음 결과 화면에서 재활성화
   const score = (state.peak && state.peak.total >= 0 && state.peak.counted) ? state.peak.total : 0;
   const entry = leaderboard.add(state.nickname, score);
   camera.stop();
