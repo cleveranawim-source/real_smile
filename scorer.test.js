@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   buildBlendshapeMap, computeScores, gradeFor, faceRoll,
 } from './scorer.js';
-import { CONFIG } from './config.js';
+import { CONFIG, PRESETS } from './config.js';
 
 // 가짜 미소: 입만 활짝, 눈/볼은 거의 안 움직임
 const FAKE = [
@@ -88,4 +88,18 @@ test('gradeFor: 경계값 매핑', () => {
   assert.equal(gradeFor(95, CONFIG.grades), '진짜 미소 마스터');
   assert.equal(gradeFor(75, CONFIG.grades), '햇살 미소');
   assert.equal(gradeFor(0, CONFIG.grades), '미소 워밍업');
+});
+
+test('난이도 프리셋: 같은 (중간 강도) 미소면 후하게 > 보통 > 깐깐', () => {
+  const MODERATE = [
+    { categoryName: 'mouthSmileLeft', score: 0.5 },
+    { categoryName: 'mouthSmileRight', score: 0.5 },
+    { categoryName: 'eyeSquintLeft', score: 0.4 },
+    { categoryName: 'eyeSquintRight', score: 0.4 },
+    { categoryName: 'cheekSquintLeft', score: 0.4 },
+    { categoryName: 'cheekSquintRight', score: 0.4 },
+  ];
+  const withPreset = (p) => computeScores(MODERATE, levelLandmarks(), { ...CONFIG, sensitivity: p }).total;
+  const g = withPreset(PRESETS.generous), n = withPreset(PRESETS.normal), s = withPreset(PRESETS.strict);
+  assert.ok(g > n && n > s, `generous=${g} normal=${n} strict=${s}`);
 });

@@ -4,6 +4,15 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>😊 뒤센 미소 대회</title>
+<meta name="description" content="눈까지 진짜로 웃어야 100점! 카메라로 진짜 미소(뒤센 미소)를 채점하는 SEL 교실 게임. 설치 없이 바로."/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="뒤센 미소 대회 — 진짜 미소에 도전!"/>
+<meta property="og:description" content="눈까지 진짜로 웃어야 100점! 카메라로 진짜 미소를 채점하는 SEL 교실 게임. 설치 없이 바로."/>
+<meta property="og:url" content="https://smile.uzu.kr"/>
+<meta property="og:image" content="https://cleveranawim-source.github.io/real_smile/og-image.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>😊</text></svg>"/>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
@@ -74,6 +83,24 @@
   .leaderboard li.me{background:var(--accent);outline:2px solid var(--primary)}
   .leaderboard li.empty{justify-content:center;color:var(--sub)}
   .privacy{text-align:center;color:var(--sub);font-size:.92rem}
+  .home-links{display:flex;gap:18px;justify-content:center;align-items:center}
+  .home-links a,.home-links button{color:var(--sub);font-size:.9rem;background:none;border:none;cursor:pointer;text-decoration:underline;font-family:inherit;padding:0}
+  .live-panel{display:flex;flex-direction:column;gap:8px}
+  .live-mini{background:rgba(0,0,0,.5);border-radius:12px;padding:9px 12px;display:flex;flex-direction:column;gap:6px;min-width:180px}
+  .mini-row{display:flex;align-items:center;gap:8px;color:#fff;font-size:.85rem;font-weight:700}
+  .mini-row span{width:1.5em}
+  .mini-bar{flex:1;height:9px;background:rgba(255,255,255,.28);border-radius:5px;overflow:hidden}
+  .mini-bar i{display:block;height:100%;width:0;border-radius:5px;transition:width .1s linear}
+  #mini-eye{background:#3fe5a0}
+  #mini-mouth{background:#ffd166}
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:999}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+  .modal-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;width:100%;max-width:420px;display:flex;flex-direction:column;gap:18px;max-height:90vh;overflow:auto}
+  .set-group>p{font-weight:700;margin-bottom:8px}
+  .seg{display:flex;gap:8px}
+  .seg button{flex:1;padding:12px 6px;border:2px solid var(--border);background:var(--card);border-radius:12px;font-size:.95rem;font-weight:600;color:var(--sub);cursor:pointer;font-family:inherit}
+  .seg button.on{border-color:var(--primary);background:#e8f8f1;color:var(--primary-d)}
+  .set-note{font-size:.85rem;color:var(--sub)}
 </style>
 </head>
 <body>
@@ -89,7 +116,11 @@
     <ol class="leaderboard" id="home-leaderboard"></ol>
   </div>
   <p class="privacy">🔒 카메라 영상은 기기 안에서만 분석돼요 · 업로드 없음</p>
-  <p style="text-align:center;margin-top:-8px"><a href="guide.html" style="color:var(--sub);font-size:.9rem">📄 교사용 사용 안내</a></p>
+  <p class="home-links" style="margin-top:-8px">
+    <a href="guide.html">📄 교사용 안내</a>
+    <button id="btn-settings">⚙️ 설정</button>
+    <button id="btn-fullscreen">⛶ 전체화면</button>
+  </p>
 </section>
 
 <section class="screen" id="screen-nickname">
@@ -106,7 +137,13 @@
     <div class="face-guide"></div>
     <div class="cam-overlay" id="overlay-countdown" hidden><span class="countdown-num" id="countdown-num">3</span></div>
     <div class="cam-overlay top" id="overlay-measure" hidden>
-      <div class="live-score-badge"><span id="live-score">0</span><small>점</small></div>
+      <div class="live-panel">
+        <div class="live-score-badge"><span id="live-score">0</span><small>점</small></div>
+        <div class="live-mini">
+          <div class="mini-row"><span>눈</span><div class="mini-bar"><i id="mini-eye"></i></div></div>
+          <div class="mini-row"><span>입</span><div class="mini-bar"><i id="mini-mouth"></i></div></div>
+        </div>
+      </div>
     </div>
   </div>
   <p class="hint" id="align-hint">가이드 안에 얼굴을 맞춰주세요</p>
@@ -141,8 +178,41 @@
   <button class="ghost-btn danger" id="btn-reset">오늘 순위 초기화</button>
 </section>
 
+<canvas id="confetti" hidden></canvas>
+
+<div class="modal" id="settings-modal" hidden>
+  <div class="modal-card">
+    <h2>⚙️ 설정 <span style="font-size:.85rem;color:var(--sub);font-weight:400">(교사용)</span></h2>
+    <div class="set-group">
+      <p>채점 난이도</p>
+      <div class="seg" id="seg-difficulty">
+        <button data-v="generous">😊 후하게</button>
+        <button data-v="normal">🙂 보통</button>
+        <button data-v="strict">🧐 깐깐하게</button>
+      </div>
+    </div>
+    <div class="set-group">
+      <p>측정 시간</p>
+      <div class="seg" id="seg-duration">
+        <button data-v="3000">3초</button>
+        <button data-v="5000">5초</button>
+        <button data-v="7000">7초</button>
+      </div>
+    </div>
+    <div class="set-group">
+      <p>소리 효과</p>
+      <div class="seg" id="seg-sound">
+        <button data-v="on">🔔 켜기</button>
+        <button data-v="off">🔕 끄기</button>
+      </div>
+    </div>
+    <p class="set-note">설정은 이 기기에만 저장돼요. 점수가 너무 짜거나 후하면 난이도를 바꿔보세요.</p>
+    <button class="big-btn" id="btn-settings-close">닫기</button>
+  </div>
+</div>
+
 <script type="module">
-import { CONFIG } from './config.js';
+import { CONFIG, PRESETS } from './config.js';
 import { computeScores, gradeFor } from './scorer.js';
 
 // MediaPipe는 카메라 진입 시점에 동적 import (CDN 불가/오프라인이어도 나머지 UI는 살아있도록)
@@ -171,9 +241,80 @@ const camera = {
   stop(){ this.stream?.getTracks().forEach(t => t.stop()); this.stream = null; },
 };
 
+const settings = {
+  data: { difficulty: 'normal', duration: 5000, sound: true },
+  load(){
+    try{ Object.assign(this.data, JSON.parse(localStorage.getItem(CONFIG.settingsKey)) || {}); }catch{}
+    this.apply();
+  },
+  save(){ localStorage.setItem(CONFIG.settingsKey, JSON.stringify(this.data)); },
+  apply(){
+    Object.assign(CONFIG.sensitivity, PRESETS[this.data.difficulty] || PRESETS.normal);
+    CONFIG.measureDurationMs = this.data.duration;
+  },
+};
+
+// Web Audio 효과음 — 파일 없이 오실레이터로 생성
+const sound = {
+  ctx: null,
+  beep(freq = 660, dur = 0.15, type = 'sine', vol = 0.15, delay = 0){
+    if(!settings.data.sound) return;
+    try{
+      if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if(this.ctx.state === 'suspended') this.ctx.resume();
+      const t = this.ctx.currentTime + delay;
+      const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+      o.type = type; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      o.connect(g); g.connect(this.ctx.destination);
+      o.start(t); o.stop(t + dur + 0.05);
+    }catch{}
+  },
+  tick(){ this.beep(660, 0.12); },
+  go(){ this.beep(990, 0.3); },
+  cheer(){ [523, 659, 784].forEach((f, i) => this.beep(f, 0.16, 'triangle', 0.16, i * 0.11)); },
+  fanfare(){ [523, 659, 784, 1047, 1319].forEach((f, i) => this.beep(f, 0.2, 'triangle', 0.18, i * 0.12)); },
+};
+
+const confetti = {
+  run(durationMs = 2600){
+    const cv = ui.el('confetti');
+    cv.hidden = false; cv.width = innerWidth; cv.height = innerHeight;
+    const ctx = cv.getContext('2d');
+    const colors = ['#3fe5a0', '#1d9e75', '#ffd166', '#ff7e5f', '#7aa6d6', '#f4a3c0'];
+    const parts = Array.from({ length: 150 }, () => ({
+      x: Math.random() * cv.width, y: -30 - Math.random() * cv.height * 0.5,
+      w: 6 + Math.random() * 6, h: 8 + Math.random() * 8,
+      vx: -1.2 + Math.random() * 2.4, vy: 2.2 + Math.random() * 3,
+      rot: Math.random() * Math.PI, vr: -0.15 + Math.random() * 0.3,
+      c: colors[(Math.random() * colors.length) | 0],
+    }));
+    const t0 = performance.now();
+    const loop = (t) => {
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      for(const p of parts){
+        p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      }
+      if(t - t0 < durationMs) requestAnimationFrame(loop);
+      else{ ctx.clearRect(0, 0, cv.width, cv.height); cv.hidden = true; }
+    };
+    requestAnimationFrame(loop);
+  },
+};
+
 const faceAnalyzer = {
   landmarker: null,
-  async init(){
+  initPromise: null,
+  // 중복 호출 안전 — 홈에서 미리 로딩해두고, 카메라 진입 시 재호출해도 같은 로딩을 기다림
+  init(){
+    if(!this.initPromise) this.initPromise = this._load().catch(e => { this.initPromise = null; throw e; });
+    return this.initPromise;
+  },
+  async _load(){
     const { FaceLandmarker, FilesetResolver } = await import(MEDIAPIPE_URL);
     const fileset = await FilesetResolver.forVisionTasks(MEDIAPIPE_URL + "/wasm");
     const opts = (delegate) => ({
@@ -277,16 +418,19 @@ function startChallenge(){
   setOverlay('countdown');
   let n = CONFIG.countdownSec;
   ui.el('countdown-num').textContent = n;
+  sound.tick();
   const iv = setInterval(() => {
     n -= 1;
-    if(n <= 0){ clearInterval(iv); measure(); }
-    else ui.el('countdown-num').textContent = n;
+    if(n <= 0){ clearInterval(iv); sound.go(); measure(); }
+    else{ sound.tick(); ui.el('countdown-num').textContent = n; }
   }, 1000);
 }
 
 function measure(){
   state.mode = 'measure';
   setOverlay('measure');
+  ui.el('mini-eye').style.width = '0%';
+  ui.el('mini-mouth').style.width = '0%';
   const fill = ui.el('measure-progress').firstElementChild;
   const start = performance.now();
   state.peak = { total:-1, eye:0, mouth:0, symmetry:0, counted:false };
@@ -296,6 +440,8 @@ function measure(){
     const r = analyzeCam();
     if(r.hasFace){
       const s = computeScores(r.categories, r.landmarks, CONFIG);
+      ui.el('mini-eye').style.width = s.eye + '%';   // 실시간 피드백: 지금 이 순간의 눈/입
+      ui.el('mini-mouth').style.width = s.mouth + '%';
       if(s.counted && s.total > state.peak.total){
         s.photo = captureFrame(ui.el('cam'));
         state.peak = s;
@@ -334,6 +480,11 @@ function showResult(){
   else { chk.checked = false; chk.disabled = true; chk.parentElement.style.opacity = '.45'; }
   ui.el('btn-register').disabled = false; // 새 결과 → 등록 버튼 재활성화
   ui.show('screen-result');
+  if(got){
+    if(s.total >= 90){ sound.fanfare(); confetti.run(); }
+    else if(s.total >= 75){ sound.cheer(); }
+    else{ sound.beep(660, 0.15); }
+  }
 }
 
 function roundRectPath(ctx, x, y, w, h, r) {
@@ -417,8 +568,21 @@ async function saveResultCard(includePhoto) {
   const got = state.peak && state.peak.total >= 0 && state.peak.counted;
   const s = got ? state.peak : { total: 0, eye: 0, mouth: 0, symmetry: 0, photo: null };
   const url = await renderResultCard(s, includePhoto && got);
+  const fileName = `뒤센미소_${s.total}점.png`;
+  // 모바일: 네이티브 공유 시트(카톡 전송·사진 저장 선택 가능). 취소하면 그대로 종료.
+  const isMobile = /Android|iPhone|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/i.test(navigator.userAgent));
+  if(isMobile && navigator.canShare){
+    try{
+      const blob = await (await fetch(url)).blob();
+      const file = new File([blob], fileName, { type: 'image/png' });
+      if(navigator.canShare({ files: [file] })){
+        await navigator.share({ files: [file], title: '뒤센 미소 대회', text: `진짜 미소 ${s.total}점! · smile.uzu.kr` });
+        return;
+      }
+    }catch(e){ if(e.name === 'AbortError') return; }
+  }
   const a = document.createElement('a');
-  a.href = url; a.download = `뒤센미소_${s.total}점.png`;
+  a.href = url; a.download = fileName;
   document.body.appendChild(a); a.click(); a.remove();
 }
 window.__renderResultCard = renderResultCard;
@@ -453,11 +617,46 @@ ui.el('btn-reset').addEventListener('click', () => {
   if(confirm('오늘 순위를 모두 지울까요?')){ leaderboard.reset(); leaderboard.render(ui.el('full-leaderboard')); }
 });
 
+// ⚙️ 설정 패널
+function renderSettings(){
+  const mark = (id, val) => ui.el(id).querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v == val));
+  mark('seg-difficulty', settings.data.difficulty);
+  mark('seg-duration', settings.data.duration);
+  mark('seg-sound', settings.data.sound ? 'on' : 'off');
+}
+function bindSeg(id, setVal){
+  ui.el(id).addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if(!b) return;
+    setVal(b.dataset.v);
+    settings.save(); settings.apply(); renderSettings();
+  });
+}
+bindSeg('seg-difficulty', v => settings.data.difficulty = v);
+bindSeg('seg-duration', v => settings.data.duration = Number(v));
+bindSeg('seg-sound', v => settings.data.sound = (v === 'on'));
+ui.el('btn-settings').addEventListener('click', () => { renderSettings(); ui.el('settings-modal').hidden = false; });
+ui.el('btn-settings-close').addEventListener('click', () => { ui.el('settings-modal').hidden = true; });
+ui.el('settings-modal').addEventListener('click', (e) => { if(e.target === e.currentTarget) e.currentTarget.hidden = true; });
+
+// ⛶ 전체화면 (아이폰 사파리 등 미지원 기기에선 숨김)
+if(document.documentElement.requestFullscreen){
+  ui.el('btn-fullscreen').addEventListener('click', () => {
+    if(document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen();
+  });
+} else {
+  ui.el('btn-fullscreen').style.display = 'none';
+}
+
 if(!navigator.mediaDevices?.getUserMedia){
   const b = ui.el('btn-start'); b.disabled = true; b.textContent = '이 브라우저는 카메라를 지원하지 않아요';
 }
+settings.load();
 leaderboard.render(ui.el('home-leaderboard'));
+faceAnalyzer.init().catch(() => {}); // 홈에서 AI 모델 미리 로딩 — 실패해도 카메라 진입 시 재시도됨
 window.__leaderboard = leaderboard;
+window.__settings = settings;
+window.__confetti = confetti;
 </script>
 </body>
 </html>
